@@ -13,6 +13,8 @@ messageRouter.route(routeGeneral+'createMessage')
 .post(messageCtrl.createMessage)
 messageRouter.route(routeGeneral+'editMessage')
 .post(messageCtrl.editMessage)
+messageRouter.route(routeGeneral+'markAsRead')
+.post(messageCtrl.markAsRead)
 messageRouter.route(routeGeneral+'removeMessage')
 .post(messageCtrl.removeMessage)
 

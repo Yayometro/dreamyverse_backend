@@ -140,134 +140,88 @@ const dreamCtrl: userCtrlType = {
   },
   getHomeDreamsFeed: async (req: Request, res: Response) => {
     try {
-      const { userId } = req.query;
-      console.log("userId:", userId);
-      if (typeof userId !== "string") {
-        return res.status(400).send({
-          message: "userId must be a string.",
-          ok: false,
-        });
-      }
-      const userObjectId = userId
-      // Encuentra los usuarios que el usuario sigue
-      // const findFollowsFromUser = await Follow.find({ follower: userId }).populate("user").select("user -_id");
-      // const findFollowsFromUser = await Follow.find({ 
-      //   follower: userId, 
-      //   // $or: [
-      //   //   { dream: { $exists: false } },
-      //   //   { post: { $exists: false } }
-      //   // ]
-      // }).populate("user").select("user -_id");
-      // Encuentra los usuarios, sueños y posts que el usuario sigue
-        const findFollowsFromUser = await Follow.find({
-            follower: userId
-        });
-      // const findFollowsFromUser = await Follow.find({ user: userId }).populate("user").select("user -_id");
-      if (!findFollowsFromUser) {
-        return res.status(401).send({
-          message: "No follows found for the user, review the userId or try again later",
-          ok: false,
-        });
-      }
-      // console.log("Aqui llego")
-      // console.log("findFollowsFromUser", findFollowsFromUser)
-      // // Extrae los IDs de los usuarios seguidos
-      // const followedUserIds = findFollowsFromUser.map((follow) => follow.user._id);
-      // console.log("Aqui llego X2")
-
-       // Inicializa un conjunto para almacenar los IDs de usuarios, sueños y posts seguidos
-       const followedIds = new Set();
-
-       // Agrega los IDs de los usuarios seguidos
-       findFollowsFromUser.forEach(follow => {
-           followedIds.add(follow.user);
-           if (follow.dream) followedIds.add(follow.dream);
-           if (follow.post) followedIds.add(follow.post);
-       });
-
-       // Agrega el ID del usuario actual al conjunto
-       followedIds.add(userObjectId);
-
-       console.log("Aqui llego X2");
-
-       // Busca los sueños (dreams) y los posts seguidos por el usuario
-       const totalDreams = await Dream.find({
-        $or: [
-            { 
-                $or: [
-                    { user: { $in: Array.from(followedIds) } },
-                    { _id: { $in: Array.from(followedIds) } }
-                ]
-            },
-            { 
-                $or: [
-                    { "visibility.isPublic": true },
-                    { "visibility.isVisibleForFriends": true }
-                ]
-            }
-        ]
-    })
-        .populate("user")
-        .sort({ date: -1 })
-        .limit(400); // Limita los resultados a 400
-
-      // // Agrega el ID del usuario actual a la lista
-      // followedUserIds.push(userObjectId);
-      // console.log("Aqui llego X3")
-      //   const totalDreams = await Dream.find({
-      //     user: { $in: followedUserIds }, //Search each index of the array
-      //     $or: [
-      //       { "visibility.isPublic": true },
-      //       { "visibility.isVisibleForFriends": true }
-      //     ] //The other criteria to select dreams
-      //   })
-      //     .populate("user")
-      //     .sort({ date: -1 })
-      //     .limit(400); // Limita los resultados a 400
-  
-      if (!totalDreams)
-        return res.status(401).send({
-          data: totalDreams,
-          message:
-            "No dreams found on 'getHomeDreamsFeed', review the ID or try again later",
-          ok: false,
-        });
-        if (!totalDreams.length) {
-          return res.status(401).send({
-            message: "No dreams found, review the userId or try again later",
-            ok: false,
-          });
+        const { userId } = req.query;
+        console.log("userId:", userId);
+        if (typeof userId !== "string") {
+            return res.status(400).send({
+                message: "userId must be a string.",
+                ok: false,
+            });
         }
-  
-      console.log(totalDreams);
-      return res.status(201).send({
-        data: totalDreams,
-        message: "Dreams found 😎",
-        ok: true,
-      });
+
+        // Encuentra los follows del usuario
+        const findFollowsFromUser = await Follow.find({ follower: userId });
+        if (!findFollowsFromUser) {
+            return res.status(401).send({
+                message: "No follows found for the user, review the userId or try again later",
+                ok: false,
+            });
+        }
+
+        // Start sets
+        const followedUserIds = new Set<string>();
+        const followedDreamIds = new Set<string>();
+
+        // Organization
+        findFollowsFromUser.forEach(follow => {
+            if (follow.user) {
+                followedUserIds.add(follow.user.toString());
+            }
+            if (follow.dream) {
+                followedDreamIds.add(follow.dream.toString());
+            }
+        });
+
+        // Add user
+        followedUserIds.add(userId);
+
+        // Find per user
+        const userDreams = await Dream.find({ user: { $in: Array.from(followedUserIds) } })
+            .populate("user")
+            .sort({ date: -1 })
+            .limit(400);
+
+        // Find per dream
+        const followedDreams = await Dream.find({ _id: { $in: Array.from(followedDreamIds) } })
+            .populate("user")
+            .sort({ date: -1 })
+            .limit(400);
+
+        // Mix and remove duplicates
+        const totalDreams = [...new Set([...userDreams, ...followedDreams])];
+
+        if (!totalDreams.length) {
+            return res.status(201).send({
+                data: totalDreams,
+                message: "No dreams found, user must follow somone to display results",
+                ok: false,
+            });
+        }
+        return res.status(201).send({
+            data: totalDreams,
+            message: "Dreams found 😎",
+            ok: true,
+        });
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        console.error(e.message);
-        return res.status(401).send({
-          error: e,
-          message: e.message,
-          ok: false,
-        });
-        // throw new Error(e.message);
-      } else {
-        console.error(e);
-        return res.status(401).send({
-          error: e,
-          message: "An unexpected error has occurred, please try again later.",
-          ok: false,
-        });
-        throw new Error(
-          "An unexpected error has occurred, please try again later."
-        );
-        // process.exit(1);  // Salir del proceso si la conexión a la base de datos falla
-      }
+        if (e instanceof Error) {
+            console.error(e.message);
+            return res.status(401).send({
+                error: e,
+                message: e.message,
+                ok: false,
+            });
+        } else {
+            console.error(e);
+            return res.status(401).send({
+                error: e,
+                message: "An unexpected error has occurred, please try again later.",
+                ok: false,
+            });
+        }
     }
-  },
+},
+
+
   getAllPublicDreams: async (_req: Request, res: Response) => {
     try {
       // const {id} = req.query

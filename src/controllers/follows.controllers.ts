@@ -1,6 +1,12 @@
 
 import { Request, Response } from "express";
 import Follow from "../models/Follow";
+import Notification from "../models/Notification";
+import Dream from "../models/Dream";
+import User, { IUser } from "../models/User";
+import { error } from "console";
+import mapUsersSocket from "../helpers/mapUsersIdSocket";
+import { io } from "..";
 
 export interface reactionsCtrlType {
   newFollow: (req: Request, res: Response) => void;
@@ -39,6 +45,54 @@ const followsCtrl: reactionsCtrlType = {
             message: newFollow,
           });
       }
+      //HANLDE NOTIFICATION
+      const typeFollow = savedFollow.user ? "user" : savedFollow.dream ? "dream" : "post"
+      let dream
+      let message
+      let userId
+      if(typeFollow === "dream"){
+        dream = await Dream.findById(savedFollow.dream)
+        if (!dream) {
+          return res
+            .status(400)
+            .send({
+              message: "Dream was not found while creating new notification for a new follow",
+              error: newFollow,
+            });
+        }
+        message = `${(savedFollow.follower as unknown as IUser).username} is following one of your dreams. Click to see one.`
+        userId = dream.user
+      } else if (typeFollow === "user"){
+        message = `${(savedFollow.follower as unknown as IUser).username} is following you now!`
+        userId = savedFollow.user
+      }
+
+      const notification = new Notification({
+        user: userId,
+        type: typeFollow,
+        redirectionalId: typeFollow === "user" ? (savedFollow.follower as unknown as IUser).username : typeFollow === "dream" ? savedFollow.dream : "post",
+        message: message,
+      });
+
+      await notification.save();
+      if(!notification){
+        console.log("!notification", notification)
+        return res
+          .status(400)
+          .send({
+            message: "Notification was not saved while creating new follow",
+            error: notification,
+          });
+      }
+      //HANDLE SOCKET NOTIFICATION
+      const socketId = mapUsersSocket[userId as unknown as string]
+      console.log("socketId", socketId)
+      if (socketId) {
+        console.log("Se identifico un socketId igual a ", socketId)
+        io.to(socketId).emit("notification", notification);
+        console.log("Se emitió una notificacion")
+      }
+      //FINALLY SEND RESPONSE
       return res.status(201).send({
         data: savedFollow,
         message: "Follow created 😎",
@@ -354,10 +408,8 @@ const followsCtrl: reactionsCtrlType = {
   removeFollow: async (req: Request, res: Response) => {
     try {
       const { followId } = req.query;
-      console.log("req.query", req.query);
-      console.log({
-        followId: followId,
-      });
+      // console.log("req.query", req.query);
+      console.log("followId", followId);
       if (!followId) {
         return res.status(400).send("followId is required to remove follow");
       }

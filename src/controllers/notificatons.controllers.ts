@@ -1,6 +1,8 @@
 
 import { Request, Response } from "express";
 import Notification from "../models/Notification";
+import mapUsersSocket from "../helpers/mapUsersIdSocket";
+import { io } from "..";
 
 export interface searchCtrlType {
     createNotification: (req: Request, res: Response) => void;
@@ -37,6 +39,16 @@ const notifyCtrl: searchCtrlType = {
                     ok: false
                 });
               }
+            // SEND SOCKET
+            const receiverSocketId = mapUsersSocket[savedNotification.user as unknown as string];
+            console.log("receiverSocketId", receiverSocketId);
+            if (receiverSocketId) {
+                console.log("SOCKET NOTIFICATOR ACTIVATED!");
+                console.log("New notification by socket io send it");
+                io.to(receiverSocketId).emit("notification", savedNotification);
+            } else {
+                console.log("No receiver socket found for user", savedNotification.user);
+            }
             return res.status(200).send({
                 data: savedNotification,
                 message: "User notification was created correctly...",
