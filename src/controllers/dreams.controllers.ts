@@ -224,14 +224,6 @@ const dreamCtrl: userCtrlType = {
 
   getAllPublicDreams: async (_req: Request, res: Response) => {
     try {
-      // const {id} = req.query
-      // console.log("mail:", id)
-      // if (typeof id !== 'string') {
-      //     return res.status(400).send({
-      //         message: "ID must be a string.",
-      //         ok: false
-      //     });
-      // }
       const publicDreams = await Dream.find({ "visibility.isPublic": true })
         .populate("user")
         .sort({ date: -1 });

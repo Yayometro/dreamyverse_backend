@@ -41,6 +41,7 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.11.30",
+    "@types/socket.io": "^3.0.2",
     "typescript": "^5.4.3"
   }
 }

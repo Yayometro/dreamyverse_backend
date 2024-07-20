@@ -195,14 +195,6 @@ const dreamCtrl = {
     }),
     getAllPublicDreams: (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            // const {id} = req.query
-            // console.log("mail:", id)
-            // if (typeof id !== 'string') {
-            //     return res.status(400).send({
-            //         message: "ID must be a string.",
-            //         ok: false
-            //     });
-            // }
             const publicDreams = yield Dream_1.default.find({ "visibility.isPublic": true })
                 .populate("user")
                 .sort({ date: -1 });
