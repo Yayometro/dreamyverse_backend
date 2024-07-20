@@ -1,11 +1,36 @@
-import mongoose, { Schema } from 'mongoose';
-const matchDreamSchema = new Schema({
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const mongoose_1 = __importStar(require("mongoose"));
+const matchDreamSchema = new mongoose_1.Schema({
     user: [{
-            type: mongoose.Schema.Types.ObjectId,
+            type: mongoose_1.default.Schema.Types.ObjectId,
             ref: "User",
         }],
     dreams: [{
-            type: mongoose.Schema.Types.ObjectId,
+            type: mongoose_1.default.Schema.Types.ObjectId,
             ref: "Dream",
         }],
     identifiers: {
@@ -14,5 +39,5 @@ const matchDreamSchema = new Schema({
     }
 }, { timestamps: true });
 // Creamos el modelo a partir del esquema.
-const MatchDream = mongoose.model('MatchDream', matchDreamSchema);
-export default MatchDream;
+const MatchDream = mongoose_1.default.model('MatchDream', matchDreamSchema);
+exports.default = MatchDream;

@@ -24,16 +24,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const categorySchema = new mongoose_1.Schema({
-    name: { type: String },
-    color: { type: String },
-    icon: { type: String },
-    isDefault: { type: Boolean, required: true },
+const followSchema = new mongoose_1.Schema({
+    follower: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
     user: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: "User",
     },
+    dream: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Dream",
+    },
+    post: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Post",
+    },
 }, { timestamps: true });
 // Creamos el modelo a partir del esquema.
-const Category = mongoose_1.default.model('Category', categorySchema);
-exports.default = Category;
+const Follow = mongoose_1.default.model('Follow', followSchema);
+exports.default = Follow;

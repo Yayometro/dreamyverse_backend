@@ -23,17 +23,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// models/Notification.js
 const mongoose_1 = __importStar(require("mongoose"));
-const categorySchema = new mongoose_1.Schema({
-    name: { type: String },
-    color: { type: String },
-    icon: { type: String },
-    isDefault: { type: Boolean, required: true },
-    user: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: "User",
-    },
-}, { timestamps: true });
-// Creamos el modelo a partir del esquema.
-const Category = mongoose_1.default.model('Category', categorySchema);
-exports.default = Category;
+const notificationSchema = new mongoose_1.Schema({
+    user: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'User', required: true },
+    type: { type: String, required: true },
+    redirectionalId: { type: String, required: true },
+    message: { type: String, required: true },
+    read: { type: Boolean, default: false },
+    action: { type: String },
+    createdAt: { type: Date, default: Date.now },
+});
+const Notification = mongoose_1.default.model('Notification', notificationSchema);
+exports.default = Notification;

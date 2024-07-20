@@ -24,16 +24,38 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const categorySchema = new mongoose_1.Schema({
-    name: { type: String },
-    color: { type: String },
-    icon: { type: String },
-    isDefault: { type: Boolean, required: true },
+const reactionSchema = new mongoose_1.Schema({
     user: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: "User",
+        required: true,
     },
+    dream: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Dream",
+    },
+    comment: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "CommentDream",
+    },
+    post: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Post",
+    },
+    message: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Message",
+    },
+    visibility: {
+        isPublic: { type: Boolean },
+        isVisibleForFriends: { type: Boolean },
+        visibleFor: [{
+                type: mongoose_1.default.Schema.Types.ObjectId,
+                ref: "User",
+            }]
+    },
+    icon: { type: String }
 }, { timestamps: true });
 // Creamos el modelo a partir del esquema.
-const Category = mongoose_1.default.model('Category', categorySchema);
-exports.default = Category;
+const Reaction = mongoose_1.default.model('Reaction', reactionSchema);
+exports.default = Reaction;
