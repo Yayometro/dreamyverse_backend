@@ -24,7 +24,11 @@ app.set('port', process.env.PORT || 3503)
 app.use(morgan('dev'))
 app.use(express.urlencoded({extended: true}))
 app.use(express.json({type: "*/*"}))
-app.use(cors())
+app.use(cors({
+    origin: '*', // allow any origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // allow meth
+    allowedHeaders: ['Content-Type', 'Authorization'] // allow headers
+  }));
 
 //Variables Globales
 
